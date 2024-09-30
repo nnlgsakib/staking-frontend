@@ -30,6 +30,7 @@ export function StakeFormComponent() {
   const [amount, setAmount] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isStaking, setIsStaking] = useState(false);
+  const [allowanceChecked, setAllowanceChecked] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const bgColor = useColorModeValue('gray.100', 'gray.700');
   const {
@@ -39,7 +40,7 @@ export function StakeFormComponent() {
     checkAllowance,
     stakingTokenContract,
     address,
-    balance,
+    userTokenBalance,
     userStaked,
     apr,
   } = useWeb3();
@@ -52,35 +53,40 @@ export function StakeFormComponent() {
 
   const handleStake = () => {
     if (!amount) return;
+    setAllowanceChecked(true); // Check allowance when user clicks "Stake"
     onOpen();
   };
 
-  const handleApprove = () => {
-    setIsApproving(true);
-    approveTokens(amount)
-      .catch((error:any) => {
-        console.error('Approval error:', error);
-      })
-      .finally(() => {
-        setIsApproving(false);
-      });
+  const handleApprove = async () => {
+    try {
+      setIsApproving(true);
+      console.log(`Approving ${amount} tokens for staking...`);
+      await approveTokens(amount);
+      console.log('Approval successful');
+    } catch (error) {
+      console.error('Approval error:', error);
+    } finally {
+      setIsApproving(false);
+    }
   };
 
-  const handleConfirm = () => {
-    setIsStaking(true);
-    stake(amount)
-      .catch((error:any) => {
-        console.error('Staking error:', error);
-      })
-      .finally(() => {
-        setAmount('');
-        setIsStaking(false);
-        onClose();
-      });
+  const handleConfirm = async () => {
+    try {
+      setIsStaking(true);
+      console.log(`Staking ${amount} tokens...`);
+      await stake(amount);
+      console.log('Staking successful');
+    } catch (error) {
+      console.error('Staking error:', error);
+    } finally {
+      setAmount(''); // Reset the input amount
+      setIsStaking(false);
+      onClose();
+    }
   };
 
   const hasEnoughAllowance = ethers.utils.parseEther(allowance).gte(ethers.utils.parseEther(amount || '0'));
-  const hasEnoughBalance = ethers.utils.parseEther(balance).gte(ethers.utils.parseEther(amount || '0'));
+  const hasEnoughBalance = ethers.utils.parseEther(userTokenBalance).gte(ethers.utils.parseEther(amount || '0'));
 
   return (
     <Box bg={bgColor} p={6} borderWidth={2} borderColor="blue.500" borderRadius="md" width="100%" maxWidth="500px" mx="auto">
@@ -91,8 +97,8 @@ export function StakeFormComponent() {
 
         <HStack justify="space-between">
           <Stat>
-            <StatLabel>Your Balance</StatLabel>
-            <StatNumber>{parseFloat(balance).toFixed(4)}</StatNumber>
+            <StatLabel>Your Token Balance</StatLabel>
+            <StatNumber>{parseFloat(userTokenBalance).toFixed(4)}</StatNumber>
             <StatHelpText>Available to stake</StatHelpText>
           </Stat>
           <Stat>
@@ -121,12 +127,13 @@ export function StakeFormComponent() {
           onClick={handleStake}
           colorScheme="blue"
           width="full"
-          isDisabled={!amount || !hasEnoughBalance || !hasEnoughAllowance}
+          isDisabled={!amount || !hasEnoughBalance}
         >
           Stake
         </Button>
       </VStack>
 
+      {/* Confirmation Modal */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent bg={bgColor}>

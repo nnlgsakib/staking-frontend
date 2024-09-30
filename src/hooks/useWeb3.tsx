@@ -14,171 +14,173 @@ const STAKING_TOKEN_ADDRESS = '0xF29945310FB89F2AA76Fb00EE758dEa72a1D8B0d';
 
 export function useWeb3() {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
-  const [wsProvider, setWsProvider] = useState<ethers.providers.WebSocketProvider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [stakingContract, setStakingContract] = useState<ethers.Contract | null>(null);
   const [stakingTokenContract, setStakingTokenContract] = useState<ethers.Contract | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState('');
-  const [balance, setBalance] = useState('0');
-  const [network, setNetwork] = useState('');
+  const [balance, setBalance] = useState('0'); // Native ETH balance
+  const [userTokenBalance, setUserTokenBalance] = useState('0'); // Token balance
   const [totalStakedTokens, setTotalStakedTokens] = useState('0');
   const [userStaked, setUserStaked] = useState('0');
   const [apr, setApr] = useState(0);
   const [rewardsEarned, setRewardsEarned] = useState('0');
   const [gasPrice, setGasPrice] = useState('0');
-  const [latestTx, setLatestTx] = useState({ hash: '', status: '' });
   const [allowance, setAllowance] = useState('0');
+  const [latestTx, setLatestTx] = useState({ hash: '', status: '' });
 
-  const loadWeb3Data = () => {
+  const loadWeb3Data = async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
-        window.ethereum.request({ method: 'eth_requestAccounts' }).then((accounts: any) => {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const wsProvider = new ethers.providers.WebSocketProvider('wss://seednode.mindchain.info/ws');
-          const signer = provider.getSigner();
-          signer.getAddress().then((address: string) => {
-            provider.getBalance(address).then((balance: any) => {
-              const formattedBalance = ethers.utils.formatEther(balance);
-              provider.getNetwork().then((network: any) => {
-                setProvider(provider);
-                setWsProvider(wsProvider);
-                setSigner(signer);
-                setIsConnected(true);
-                setAddress(address);
-                setBalance(formattedBalance);
-                setNetwork(network.name);
+        // Request accounts from MetaMask
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
 
-                // Initialize contracts
-                const stakingContract = new ethers.Contract(STAKING_CONTRACT_ADDRESS, ScalableStakingEngine_ABI, signer);
-                const stakingTokenContract = new ethers.Contract(STAKING_TOKEN_ADDRESS, ERC20_ABI, signer);
-                setStakingContract(stakingContract);
-                setStakingTokenContract(stakingTokenContract);
+        // Initialize provider and signer
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        const balance = ethers.utils.formatEther(await provider.getBalance(address)); // ETH balance
 
-                // Fetch all required data
-                fetchStakingData(stakingContract, address);
-                checkAllowance(stakingTokenContract, address);
-              });
-            });
-          });
-        });
+        setProvider(provider);
+        setSigner(signer);
+        setIsConnected(true);
+        setAddress(address);
+        setBalance(balance);
+
+        // Initialize contracts
+        const stakingContract = new ethers.Contract(STAKING_CONTRACT_ADDRESS, ScalableStakingEngine_ABI, signer);
+        const stakingTokenContract = new ethers.Contract(STAKING_TOKEN_ADDRESS, ERC20_ABI, signer);
+        setStakingContract(stakingContract);
+        setStakingTokenContract(stakingTokenContract);
+
+        // Fetch initial data
+        await fetchStakingData(stakingContract, address);
+        await fetchTokenBalance(stakingTokenContract, address); // Fetch token balance
+        await checkAllowance(stakingTokenContract, address);
+        await fetchGasPrice(provider);
       } catch (error) {
         console.error('Failed to connect wallet:', error);
       }
     } else {
-      alert('Please install a Web3 wallet like MetaMask to connect');
+      alert('Please install MetaMask or another Web3 wallet');
     }
   };
 
-  const fetchStakingData = (stakingContract: ethers.Contract, userAddress: string) => {
-    stakingContract.getTotalStakedTokens().then((totalStaked: any) => {
-      setTotalStakedTokens(ethers.utils.formatEther(totalStaked));
+  // Fetch token balance from the staking token contract
+  const fetchTokenBalance = async (tokenContract: ethers.Contract, userAddress: string) => {
+    try {
+      const tokenBalance = await tokenContract.balanceOf(userAddress);
+      setUserTokenBalance(ethers.utils.formatEther(tokenBalance));
+    } catch (error) {
+      console.error('Error fetching token balance:', error);
+    }
+  };
 
-      stakingContract.getTotalStakedByUser(userAddress).then((userStaked: any) => {
-        setUserStaked(ethers.utils.formatEther(userStaked));
+  // Fetch staking data (total staked, user staked, APR, rewards)
+  const fetchStakingData = async (stakingContract: ethers.Contract, userAddress: string) => {
+    try {
+      const totalStaked = ethers.utils.formatEther(await stakingContract.getTotalStakedTokens());
+      setTotalStakedTokens(totalStaked);
 
-        stakingContract.getCurrentapr().then((apr: any) => {
-          setApr(apr.toNumber());
-          stakingContract.totalUnlockedReward(userAddress).then((rewards: any) => {
-            setRewardsEarned(ethers.utils.formatEther(rewards));
-          });
-        });
-      });
-    }).catch((error: any) => {
+      const userStaked = ethers.utils.formatEther(await stakingContract.getTotalStakedByUser(userAddress));
+      setUserStaked(userStaked);
+
+      const apr = await stakingContract.getCurrentapr();
+      setApr(apr.toNumber());
+
+      const rewardsEarned = ethers.utils.formatEther(await stakingContract.totalUnlockedReward(userAddress));
+      setRewardsEarned(rewardsEarned);
+    } catch (error) {
       console.error('Error fetching staking data:', error);
-    });
+    }
   };
 
-  const checkAllowance = (tokenContract: ethers.Contract, userAddress: string) => {
-    tokenContract.allowance(userAddress, STAKING_CONTRACT_ADDRESS).then((allowance: any) => {
+  // Check the user's token allowance
+  const checkAllowance = async (tokenContract: ethers.Contract, userAddress: string) => {
+    try {
+      const allowance = await tokenContract.allowance(userAddress, STAKING_CONTRACT_ADDRESS);
       setAllowance(ethers.utils.formatEther(allowance));
-    }).catch((error: any) => {
+    } catch (error) {
       console.error('Error checking allowance:', error);
-    });
+    }
   };
 
-  const stake = (amount: string) => {
-    if (!stakingContract || !signer) return;
-    const amountInWei = ethers.utils.parseEther(amount);
-    stakingContract.stake(amountInWei).then((txStake: any) => {
-      setLatestTx({ hash: txStake.hash, status: 'pending' });
-      txStake.wait().then(() => {
-        setLatestTx({ hash: txStake.hash, status: 'confirmed' });
-        fetchStakingData(stakingContract, address);
-      }).catch((error: any) => {
-        console.error('Error staking tokens:', error);
-        setLatestTx({ hash: '', status: 'failed' });
-      });
-    });
+  // Fetch the current gas price from the provider
+  const fetchGasPrice = async (provider: ethers.providers.Web3Provider) => {
+    try {
+      const gasPrice = await provider.getGasPrice();
+      setGasPrice(ethers.utils.formatUnits(gasPrice, 'gwei'));
+    } catch (error) {
+      console.error('Error fetching gas price:', error);
+    }
   };
 
-  const unstake = (sessionId: number) => {
-    if (!stakingContract) return;
-    stakingContract.unstake(sessionId).then((txUnstake: any) => {
-      setLatestTx({ hash: txUnstake.hash, status: 'pending' });
-      txUnstake.wait().then(() => {
-        setLatestTx({ hash: txUnstake.hash, status: 'confirmed' });
-        fetchStakingData(stakingContract, address);
-      }).catch((error: any) => {
-        console.error('Error unstaking tokens:', error);
-        setLatestTx({ hash: '', status: 'failed' });
-      });
-    });
-  };
-
-  const withdrawRewards = () => {
-    if (!stakingContract) return;
-    stakingContract.withdrawRewards().then((txWithdraw: any) => {
-      setLatestTx({ hash: txWithdraw.hash, status: 'pending' });
-      txWithdraw.wait().then(() => {
-        setLatestTx({ hash: txWithdraw.hash, status: 'confirmed' });
-        fetchStakingData(stakingContract, address);
-      }).catch((error: any) => {
-        console.error('Error withdrawing rewards:', error);
-        setLatestTx({ hash: '', status: 'failed' });
-      });
-    });
-  };
-
-  const approveTokens = (amount: string) => {
+  // Approve tokens for staking
+  const approveTokens = async (amount: string) => {
     if (!stakingTokenContract || !signer) return;
     const amountInWei = ethers.utils.parseEther(amount);
-    stakingTokenContract.approve(STAKING_CONTRACT_ADDRESS, amountInWei).then((txApprove: any) => {
-      setLatestTx({ hash: txApprove.hash, status: 'pending' });
-      txApprove.wait().then(() => {
-        setLatestTx({ hash: txApprove.hash, status: 'confirmed' });
-        checkAllowance(stakingTokenContract, address);
-      }).catch((error: any) => {
-        console.error('Error approving tokens:', error);
-        setLatestTx({ hash: '', status: 'failed' });
-      });
-    });
+    const txApprove = await stakingTokenContract.approve(STAKING_CONTRACT_ADDRESS, amountInWei);
+    setLatestTx({ hash: txApprove.hash, status: 'pending' });
+    await txApprove.wait();
+    setLatestTx({ hash: txApprove.hash, status: 'confirmed' });
+    checkAllowance(stakingTokenContract, address);
   };
 
-  // Load data when component mounts
+  // Stake tokens
+  const stake = async (amount: string) => {
+    if (!stakingContract || !signer) return;
+    const amountInWei = ethers.utils.parseEther(amount);
+    const txStake = await stakingContract.stake(amountInWei);
+    setLatestTx({ hash: txStake.hash, status: 'pending' });
+    await txStake.wait();
+    setLatestTx({ hash: txStake.hash, status: 'confirmed' });
+    fetchStakingData(stakingContract, address);
+  };
+
+  // Unstake tokens
+  const unstake = async (sessionId: number) => {
+    if (!stakingContract) return;
+    const txUnstake = await stakingContract.unstake(sessionId);
+    setLatestTx({ hash: txUnstake.hash, status: 'pending' });
+    await txUnstake.wait();
+    setLatestTx({ hash: txUnstake.hash, status: 'confirmed' });
+    fetchStakingData(stakingContract, address);
+  };
+
+  // Withdraw rewards
+  const withdrawRewards = async () => {
+    if (!stakingContract) return;
+    const txWithdraw = await stakingContract.withdrawRewards();
+    setLatestTx({ hash: txWithdraw.hash, status: 'pending' });
+    await txWithdraw.wait();
+    setLatestTx({ hash: txWithdraw.hash, status: 'confirmed' });
+    fetchStakingData(stakingContract, address);
+  };
+
+  // Auto load data when the hook is first mounted
   useEffect(() => {
     loadWeb3Data();
   }, []);
 
   return {
-    connectWallet: loadWeb3Data, // Reuse loadWeb3Data to reconnect
+    connectWallet: loadWeb3Data,
     isConnected,
     address,
     balance,
-    network,
-    gasPrice,
+    userTokenBalance, // Expose token balance
     totalStakedTokens,
     userStaked,
     apr,
     rewardsEarned,
-    latestTx,
     allowance,
+    gasPrice, // Added gas price
     stake,
     unstake,
     withdrawRewards,
     approveTokens,
-    checkAllowance, // Ensure checkAllowance is returned
-    stakingContract,
+    latestTx,
+    checkAllowance,
     stakingTokenContract,
+    stakingContract,
   };
 }

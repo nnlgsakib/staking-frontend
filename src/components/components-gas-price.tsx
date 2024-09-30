@@ -1,16 +1,15 @@
-'use client'
+'use client';
 
-import { HStack, Text } from '@chakra-ui/react'
+import { HStack, Text } from '@chakra-ui/react';
+import { useWeb3 } from '@/hooks/useWeb3';
 
-interface GasPriceProps {
-  price: string;
-}
+export function GasPriceComponent() {
+  const { gasPrice } = useWeb3(); // Use the hook to get the gas price
 
-export function GasPriceComponent({ price }: GasPriceProps) {
   return (
     <HStack>
       <Text fontSize="sm">Gas Price:</Text>
-      <Text fontSize="sm" fontWeight="bold">{price} Gwei</Text>
+      <Text fontSize="sm" fontWeight="bold">{gasPrice !== '0' ? `${gasPrice} Gwei` : 'Loading...'}</Text>
     </HStack>
-  )
+  );
 }
