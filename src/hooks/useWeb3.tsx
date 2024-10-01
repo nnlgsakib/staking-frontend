@@ -85,7 +85,7 @@ export function useWeb3() {
       const userStaked = ethers.utils.formatEther(await stakingContract.getTotalStakedByUser(userAddress));
       setUserStaked(userStaked);
 
-      const apr = await stakingContract.getCurrentapr();
+      const apr = await stakingContract.getCurrentAPR();
       setApr(apr.toNumber());
 
       const rewardsEarned = ethers.utils.formatEther(await stakingContract.totalUnlockedReward(userAddress));

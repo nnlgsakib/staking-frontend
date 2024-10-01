@@ -37,6 +37,29 @@ export const ScalableStakingEngine_ABI:any =[
 		"type": "error"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_stakingToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_rewardVault",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_treasuryAddress",
+				"type": "address"
+			}
+		],
+		"name": "initialize",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "InvalidInitialization",
 		"type": "error"
@@ -135,6 +158,78 @@ export const ScalableStakingEngine_ABI:any =[
 		"type": "event"
 	},
 	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "newProfitPercent",
+				"type": "uint256"
+			}
+		],
+		"name": "setProfitPercent",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "newDuration",
+				"type": "uint256"
+			}
+		],
+		"name": "setStakeDuration",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newTreasuryAddress",
+				"type": "address"
+			}
+		],
+		"name": "setTreasuryAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "newUnstakePenaltyPercent",
+				"type": "uint256"
+			}
+		],
+		"name": "setUnstakePenaltyPercent",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "stake",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -171,7 +266,7 @@ export const ScalableStakingEngine_ABI:any =[
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "profitPercent",
+				"name": "sessionProfitPercent",
 				"type": "uint256"
 			},
 			{
@@ -191,6 +286,19 @@ export const ScalableStakingEngine_ABI:any =[
 		"type": "event"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -202,6 +310,19 @@ export const ScalableStakingEngine_ABI:any =[
 		],
 		"name": "TreasuryAddressUpdated",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sessionId",
+				"type": "uint256"
+			}
+		],
+		"name": "unstake",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -267,6 +388,24 @@ export const ScalableStakingEngine_ABI:any =[
 		"type": "event"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newImplementation",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
+			}
+		],
+		"name": "upgradeToAndCall",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -293,15 +432,9 @@ export const ScalableStakingEngine_ABI:any =[
 	},
 	{
 		"inputs": [],
-		"name": "UPGRADE_INTERFACE_VERSION",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
+		"name": "withdrawRewards",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -325,7 +458,7 @@ export const ScalableStakingEngine_ABI:any =[
 	},
 	{
 		"inputs": [],
-		"name": "getCurrentapr",
+		"name": "getCurrentAPR",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -472,29 +605,6 @@ export const ScalableStakingEngine_ABI:any =[
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_stakingToken",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_rewardVault",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_treasuryAddress",
-				"type": "address"
-			}
-		],
-		"name": "initialize",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "owner",
 		"outputs": [
@@ -535,13 +645,6 @@ export const ScalableStakingEngine_ABI:any =[
 	},
 	{
 		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "rewardVault",
 		"outputs": [
 			{
@@ -551,71 +654,6 @@ export const ScalableStakingEngine_ABI:any =[
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "newProfitPercent",
-				"type": "uint256"
-			}
-		],
-		"name": "setProfitPercent",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "newDuration",
-				"type": "uint256"
-			}
-		],
-		"name": "setStakeDuration",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newTreasuryAddress",
-				"type": "address"
-			}
-		],
-		"name": "setTreasuryAddress",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "newUnstakePenaltyPercent",
-				"type": "uint256"
-			}
-		],
-		"name": "setUnstakePenaltyPercent",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "stake",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -703,19 +741,6 @@ export const ScalableStakingEngine_ABI:any =[
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "treasuryAddress",
 		"outputs": [
@@ -726,19 +751,6 @@ export const ScalableStakingEngine_ABI:any =[
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "sessionId",
-				"type": "uint256"
-			}
-		],
-		"name": "unstake",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -755,21 +767,16 @@ export const ScalableStakingEngine_ABI:any =[
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "UPGRADE_INTERFACE_VERSION",
+		"outputs": [
 			{
-				"internalType": "address",
-				"name": "newImplementation",
-				"type": "address"
-			},
-			{
-				"internalType": "bytes",
-				"name": "data",
-				"type": "bytes"
+				"internalType": "string",
+				"name": "",
+				"type": "string"
 			}
 		],
-		"name": "upgradeToAndCall",
-		"outputs": [],
-		"stateMutability": "payable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -830,12 +837,5 @@ export const ScalableStakingEngine_ABI:any =[
 		],
 		"stateMutability": "view",
 		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawRewards",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	}
-] 
+]
