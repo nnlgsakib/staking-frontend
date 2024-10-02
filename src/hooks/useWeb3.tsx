@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-const STAKING_CONTRACT_ADDRESS = '0xAc86D91BC732b00568Baf551470122da98f38fb9';
+const STAKING_CONTRACT_ADDRESS = '0xffA691763c147dF91e073270e6244ADf94C3Ad43';
 const STAKING_TOKEN_ADDRESS = '0xF29945310FB89F2AA76Fb00EE758dEa72a1D8B0d';
 
 export function useWeb3() {
@@ -85,7 +85,7 @@ export function useWeb3() {
       const userStaked = ethers.utils.formatEther(await stakingContract.getTotalStakedByUser(userAddress));
       setUserStaked(userStaked);
 
-      const apr = await stakingContract.getCurrentAPR();
+      const apr = await stakingContract.getCurrentProfitPercent();
       setApr(apr.toNumber());
 
       const rewardsEarned = ethers.utils.formatEther(await stakingContract.totalUnlockedReward(userAddress));

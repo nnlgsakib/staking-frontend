@@ -94,17 +94,17 @@ export default function Page() {
       case 'Dashboard':
         return (
           <DashboardComponent
-            totalStaked={totalStakedTokens}
-            userStaked={userStaked}
-            apr={apr}
-            rewardsEarned={rewardsEarned}
+            //totalStaked={totalStakedTokens}
+           // userStaked={userStaked}
+            // apr={apr}
+            // rewardsEarned={rewardsEarned}
           />
         );
       case 'Stake':
         return stakingContract && stakingTokenContract ? (
           <StakeFormComponent
-            stakingContract={stakingContract}
-            stakingTokenContract={stakingTokenContract}
+        //   stakingContract={stakingContract}
+          //  stakingTokenContract={stakingTokenContract}
           />
         ) : (
           <Text>Loading staking contracts...</Text>
@@ -120,10 +120,10 @@ export default function Page() {
       default:
         return (
           <DashboardComponent
-            totalStaked={totalStakedTokens}
-            userStaked={userStaked}
-            apr={apr}
-            rewardsEarned={rewardsEarned}
+            // totalStaked={totalStakedTokens}
+            // userStaked={userStaked}
+            // apr={apr}
+            // rewardsEarned={rewardsEarned}
           />
         );
     }
@@ -151,7 +151,7 @@ export default function Page() {
             </HStack>
             <HStack justify="space-between">
               <TransactionStatusComponent txHash={latestTx.hash} status={latestTx.status} />
-              <GasPriceComponent price={gasPrice} />
+             {/* <GasPriceComponent price={gasPrice} /> */}
             </HStack>
             {renderPage()}
           </VStack>

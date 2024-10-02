@@ -3,7 +3,7 @@
 import { HStack, Text } from '@chakra-ui/react';
 import { useWeb3 } from '@/hooks/useWeb3';
 
-export function GasPriceComponent() {
+export function   GasPriceComponent() {
   const { gasPrice } = useWeb3(); // Use the hook to get the gas price
 
   return (
